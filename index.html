@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#fff8f7" />
+  <title>For Selena ♡</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <button id="editToggle" class="edit-toggle hidden" aria-label="Customize website">⚙︎ Customize</button>
+
+  <aside id="editorPanel" class="editor-panel hidden" aria-label="Birthday website editor">
+    <div class="editor-head">
+      <div>
+        <p class="eyebrow">Private edit mode</p>
+        <h3>Customize Selena's site</h3>
+      </div>
+      <button id="closeEditor" class="icon-btn" aria-label="Close editor">×</button>
+    </div>
+
+    <div class="editor-block">
+      <label class="editor-label">Upload memory photos</label>
+      <p class="editor-help">Choose up to 8 photos. They stay on this browser while you test.</p>
+      <input id="photoUploader" type="file" accept="image/*" multiple />
+      <button id="clearPhotos" class="secondary-btn editor-action">Clear uploaded photos</button>
+    </div>
+
+    <div class="editor-block">
+      <label class="editor-label">Music — I Love You 3000</label>
+      <p class="editor-help">Upload your own audio file for “I Love You 3000”. Music starts after Selena taps into the story.</p>
+      <input id="musicUploader" type="file" accept="audio/*" />
+      <div class="editor-inline">
+        <button id="previewMusic" class="secondary-btn editor-action">Preview music</button>
+        <button id="clearMusic" class="secondary-btn editor-action">Remove music</button>
+      </div>
+      <p id="musicStatus" class="editor-status">No audio uploaded yet.</p>
+    </div>
+
+    <div class="editor-block note-block">
+      <strong>When you are ready to publish:</strong>
+      <p>Browser uploads are only for editing/testing on this device. We can move the final photos and song into the website files before publishing.</p>
+    </div>
+  </aside>
+
+  <main>
+    <section id="lockScreen" class="screen lock-screen active">
+      <div class="soft-orb orb-one"></div>
+      <div class="soft-orb orb-two"></div>
+      <div class="card glass lock-card">
+        <div class="tiny-heart">♡</div>
+        <p class="eyebrow">A little something for</p>
+        <h1>Selena</h1>
+        <p class="muted">Only you are allowed in.</p>
+        <div class="pin-row" aria-label="4 digit code">
+          <input inputmode="numeric" maxlength="1" class="pin" />
+          <input inputmode="numeric" maxlength="1" class="pin" />
+          <input inputmode="numeric" maxlength="1" class="pin" />
+          <input inputmode="numeric" maxlength="1" class="pin" />
+        </div>
+        <button id="unlockBtn" class="primary-btn">Open your surprise</button>
+        <p id="pinHint" class="hint">Hint: a date only we would know ♡</p>
+      </div>
+    </section>
+
+    <section id="birthdayScreen" class="screen birthday-screen">
+      <div class="confetti-layer" id="confettiLayer"></div>
+      <div class="hero-wrap">
+        <p class="eyebrow">December • just for you</p>
+        <h2 class="hero-title">Happy Birthday,<br><span>Selena ♡</span></h2>
+        <p class="hero-copy">Today is about you. Your smile, your heart, and all the little things that make life better.</p>
+        <div class="cake" aria-label="birthday cake">
+          <div class="candle"><div class="flame" id="flame"></div></div>
+          <div class="frosting"></div>
+          <div class="cake-body"></div>
+          <div class="plate"></div>
+        </div>
+        <button id="blowBtn" class="secondary-btn">Make a wish ✨</button>
+        <button id="startBtn" class="primary-btn hidden">Start your birthday story</button>
+      </div>
+    </section>
+
+    <section id="story" class="content-page hidden">
+      <div id="musicChip" class="music-chip hidden">
+        <div class="music-disc">♪</div>
+        <div class="music-meta">
+          <span>Now playing</span>
+          <strong>I Love You 3000</strong>
+        </div>
+        <button id="musicToggle" class="music-toggle" aria-label="Play or pause music">Ⅱ</button>
+      </div>
+      <audio id="bgMusic" loop preload="metadata"></audio>
+
+      <section class="section intro-section">
+        <p class="eyebrow">Chapter one</p>
+        <h3>Us, in little moments.</h3>
+        <p class="section-copy">Not every favorite memory is a big one. Sometimes it is just a random picture, a normal day, or a moment I never want to forget.</p>
+      </section>
+
+      <section class="section memories-section">
+        <div class="section-heading-row">
+          <div>
+            <p class="eyebrow">Our memories</p>
+            <h3>Some favorites</h3>
+          </div>
+          <span class="swipe-note">swipe →</span>
+        </div>
+        <div id="memoryStrip" class="memory-strip">
+          <article class="polaroid tilt-left">
+            <div class="photo placeholder-photo photo-one"><span>Photo 1</span></div>
+            <p>Still one of my favorite days.</p>
+          </article>
+          <article class="polaroid tilt-right">
+            <div class="photo placeholder-photo photo-two"><span>Photo 2</span></div>
+            <p>This one always makes me smile.</p>
+          </article>
+          <article class="polaroid tilt-left">
+            <div class="photo placeholder-photo photo-three"><span>Photo 3</span></div>
+            <p>Just us being us.</p>
+          </article>
+          <article class="polaroid tilt-right">
+            <div class="photo placeholder-photo photo-four"><span>Photo 4</span></div>
+            <p>More of this, please.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section love-section">
+        <p class="eyebrow">A few little truths</p>
+        <h3>Things I love about you</h3>
+        <div class="love-grid">
+          <button class="love-card"><span class="front">01</span><span class="back">The way you care more than you admit.</span></button>
+          <button class="love-card"><span class="front">02</span><span class="back">Your smile when something actually surprises you.</span></button>
+          <button class="love-card"><span class="front">03</span><span class="back">How you make ordinary days feel less ordinary.</span></button>
+          <button class="love-card"><span class="front">04</span><span class="back">Your determination, even when things get hard.</span></button>
+          <button class="love-card"><span class="front">05</span><span class="back">The little things you do that nobody else notices.</span></button>
+          <button class="love-card"><span class="front">06</span><span class="back">That life feels warmer with you in it.</span></button>
+        </div>
+        <p class="tap-note">Tap each card ♡</p>
+      </section>
+
+      <section class="section letter-section">
+        <div class="letter-paper">
+          <p class="eyebrow">For you</p>
+          <h3>My birthday letter</h3>
+          <p>Selena,</p>
+          <p>I wanted to make something that felt a little more personal than just saying “happy birthday.” You deserve a day that feels thoughtful, peaceful, fun, and completely yours.</p>
+          <p>I hope this year gives you more reasons to smile, more moments you are proud of, and more memories we get to look back on together.</p>
+          <p>Happy birthday to my favorite person. ♡</p>
+          <p class="signature">— Quý</p>
+        </div>
+      </section>
+
+      <section class="section finale-section">
+        <p class="eyebrow">One more thing...</p>
+        <h3>Your birthday is not over yet.</h3>
+        <button id="revealDinnerBtn" class="primary-btn">Tap for tonight's plan</button>
+        <div id="dinnerReveal" class="dinner-card hidden">
+          <p class="small-label">TONIGHT</p>
+          <h4>Dinner for two ♡</h4>
+          <p>Dress cute. I made a reservation for us.</p>
+          <div class="reservation-row">
+            <span>📍 Surprise location</span>
+            <span>🕢 7:30 PM</span>
+          </div>
+          <p class="final-note">And yes, there is one more gift waiting after dinner.</p>
+        </div>
+      </section>
+
+      <footer>
+        Made with love, just for Selena ♡
+      </footer>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
