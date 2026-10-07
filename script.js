@@ -150,7 +150,70 @@ pins.forEach((input,i)=>{input.addEventListener('input',()=>{input.value=input.v
 function unlock(){const value=pins.map(p=>p.value).join('');if(value===CORRECT_PIN){lockScreen.classList.remove('active');birthdayScreen.classList.add('active');launchConfetti()}else{document.querySelector('.lock-card').classList.add('shake');pinHint.textContent='Not quite... try the date again ♡';setTimeout(()=>document.querySelector('.lock-card').classList.remove('shake'),360)}}
 unlockBtn.addEventListener('click',unlock);pins[pins.length-1].addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});
 
-blowBtn.addEventListener('click',()=>{flame.classList.add('out');blowBtn.textContent='Wish made ♡';blowBtn.disabled=true;setTimeout(()=>startBtn.classList.remove('hidden'),450)});
+let micStream=null,micContext=null,micFrame=null,blowHits=0,candleOut=false;
+
+function extinguishCandle(){
+  if(candleOut)return;
+  candleOut=true;
+  flame.classList.add('out');
+  blowBtn.textContent='Wish made ♡';
+  blowBtn.disabled=true;
+  stopBlowListening();
+  setTimeout(()=>startBtn.classList.remove('hidden'),450);
+}
+
+function stopBlowListening(){
+  if(micFrame)cancelAnimationFrame(micFrame);
+  micFrame=null;
+  if(micStream)micStream.getTracks().forEach(track=>track.stop());
+  micStream=null;
+  if(micContext&&micContext.state!=='closed')micContext.close().catch(()=>{});
+  micContext=null;
+}
+
+async function startBlowListening(){
+  if(candleOut||micStream||!navigator.mediaDevices?.getUserMedia)return;
+  try{
+    micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    micContext=new (window.AudioContext||window.webkitAudioContext)();
+    await micContext.resume();
+    const source=micContext.createMediaStreamSource(micStream);
+    const analyser=micContext.createAnalyser();
+    analyser.fftSize=1024;
+    analyser.smoothingTimeConstant=.25;
+    source.connect(analyser);
+    const data=new Uint8Array(analyser.fftSize);
+    blowBtn.textContent='Blow out the candle 🎂';
+    const listen=()=>{
+      if(candleOut||!micContext)return;
+      analyser.getByteTimeDomainData(data);
+      let sum=0;
+      for(let i=0;i<data.length;i++){const x=(data[i]-128)/128;sum+=x*x}
+      const rms=Math.sqrt(sum/data.length);
+      if(rms>.11)blowHits++;else blowHits=Math.max(0,blowHits-1);
+      if(blowHits>=5){extinguishCandle();return}
+      micFrame=requestAnimationFrame(listen);
+    };
+    listen();
+  }catch(e){
+    stopBlowListening();
+    blowBtn.textContent='Tap to make a wish ✨';
+  }
+}
+
+blowBtn.addEventListener('click',async()=>{
+  if(candleOut)return;
+  if(!micStream){
+    await startBlowListening();
+    if(!micStream)extinguishCandle();
+  }else{
+    extinguishCandle();
+  }
+});
+
+birthdayScreen.addEventListener('click',()=>{
+  if(!candleOut&&!micStream)startBlowListening();
+},{once:true});
 startBtn.addEventListener('click',async()=>{birthdayScreen.classList.remove('active');story.classList.remove('hidden');window.scrollTo({top:0,behavior:'instant'});if(bgMusic.src){try{await bgMusic.play();musicChip.classList.remove('paused');musicToggle.textContent='Ⅱ'}catch{musicChip.classList.add('paused');musicToggle.textContent='▶'}}});
 document.querySelectorAll('.love-card').forEach(card=>card.addEventListener('click',()=>card.classList.toggle('flipped')));
 revealDinnerBtn.addEventListener('click',()=>{dinnerReveal.classList.remove('hidden');revealDinnerBtn.classList.add('hidden');dinnerReveal.scrollIntoView({behavior:'smooth',block:'center'})});
