@@ -1,180 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#fff8f7" />
-  <title>For Selena ♡</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#170b08">
+  <title>Happy Birthday Selena ♡</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:#170b08;color:#f7ebe6}.font-serif{font-family:'Bodoni Moda',Georgia,serif}.hide-scrollbar::-webkit-scrollbar{display:none}.hide-scrollbar{-ms-overflow-style:none;scrollbar-width:none}.shake{animation:shake .34s ease}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}.editor-backdrop{background:rgba(8,3,2,.78);backdrop-filter:blur(10px)}
+  </style>
 </head>
-<body>
-  <button id="editToggle" class="edit-toggle hidden" aria-label="Customize website">⚙︎ Customize</button>
+<body class="min-h-screen pb-24 bg-[#170b08] text-[#f7ebe6]">
 
-  <aside id="editorPanel" class="editor-panel hidden" aria-label="Birthday website editor">
-    <div class="editor-head">
-      <div>
-        <p class="eyebrow">Private edit mode</p>
-        <h3>Customize Selena's site</h3>
+  <button id="editToggle" class="hidden fixed z-[70] bottom-24 right-4 rounded-full bg-[#e3b4a2] text-[#24140f] px-4 py-2 text-xs font-bold shadow-xl">⚙︎ Customize</button>
+
+  <div id="editorPanel" class="hidden fixed inset-0 z-[80] editor-backdrop p-4 overflow-y-auto">
+    <div class="max-w-md mx-auto mt-8 bg-[#24140f] border border-[#5a362a] rounded-3xl p-5 shadow-2xl">
+      <div class="flex items-start justify-between gap-4 mb-5">
+        <div><p class="text-[10px] uppercase tracking-[.22em] text-[#d8a898]">Private edit mode</p><h2 class="font-serif text-2xl mt-1">Customize Selena's site</h2></div>
+        <button id="closeEditor" class="w-9 h-9 rounded-full bg-[#341b14] border border-[#5a362a]">×</button>
       </div>
-      <button id="closeEditor" class="icon-btn" aria-label="Close editor">×</button>
+      <div class="space-y-5">
+        <div class="bg-[#1b0d09] border border-[#3e2118] rounded-2xl p-4">
+          <label class="text-sm font-semibold">Upload memory photos</label>
+          <p class="text-xs text-[#ad8c81] mt-1 mb-3">Choose up to 8 photos. They stay on this browser while you test.</p>
+          <input id="photoUploader" type="file" accept="image/*" multiple class="block w-full text-xs text-[#d9b9ad] file:mr-3 file:rounded-xl file:border-0 file:bg-[#e3b4a2] file:px-3 file:py-2 file:font-semibold file:text-[#24140f]">
+          <button id="clearPhotos" class="mt-3 w-full border border-[#553126] rounded-xl py-2 text-xs text-[#d9b9ad]">Clear uploaded photos</button>
+        </div>
+        <div class="bg-[#1b0d09] border border-[#3e2118] rounded-2xl p-4">
+          <label class="text-sm font-semibold">Music — I Love You 3000</label>
+          <p class="text-xs text-[#ad8c81] mt-1 mb-3">Upload your audio file. Music can start after Selena enters the birthday story.</p>
+          <input id="musicUploader" type="file" accept="audio/*" class="block w-full text-xs text-[#d9b9ad] file:mr-3 file:rounded-xl file:border-0 file:bg-[#e3b4a2] file:px-3 file:py-2 file:font-semibold file:text-[#24140f]">
+          <div class="grid grid-cols-2 gap-2 mt-3"><button id="previewMusic" class="border border-[#553126] rounded-xl py-2 text-xs">Preview music</button><button id="clearMusic" class="border border-[#553126] rounded-xl py-2 text-xs">Remove music</button></div>
+          <p id="musicStatus" class="text-[11px] text-[#9f8076] mt-2">No audio uploaded yet.</p>
+        </div>
+        <p class="text-[11px] leading-relaxed text-[#9f8076]">Uploads in this editor are saved only on this browser/device for preview. When you choose the final photos, they can be added directly to the site source so Selena sees them on every device.</p>
+      </div>
     </div>
+  </div>
 
-    <div class="editor-block">
-      <label class="editor-label">Upload memory photos</label>
-      <p class="editor-help">Choose up to 8 photos. They stay on this browser while you test.</p>
-      <input id="photoUploader" type="file" accept="image/*" multiple />
-      <button id="clearPhotos" class="secondary-btn editor-action">Clear uploaded photos</button>
+  <section id="lockScreen" class="fixed inset-0 z-[60] bg-[#170b08] flex items-center justify-center p-4">
+    <div id="lockCard" class="w-full max-w-md bg-[#24140f] border border-[#44271e] rounded-3xl p-7 text-center shadow-2xl">
+      <div class="w-11 h-11 mx-auto rounded-full bg-[#331c15] border border-[#5a362a] flex items-center justify-center text-[#e89b88] mb-3">♡</div>
+      <p class="text-[11px] uppercase tracking-[.22em] text-[#d8a898] font-semibold">A little something for</p>
+      <h1 class="font-serif text-4xl text-[#fcf4f0] mt-1">Selena</h1>
+      <p class="text-xs text-[#b9988d] mt-1">Only you are allowed in.</p>
+      <div class="flex justify-center gap-2.5 my-6">
+        <input inputmode="numeric" maxlength="1" class="pin w-12 h-14 bg-[#180a06] border border-[#522f24] rounded-xl text-center text-xl font-serif font-bold focus:outline-none focus:border-[#e89b88]">
+        <input inputmode="numeric" maxlength="1" class="pin w-12 h-14 bg-[#180a06] border border-[#522f24] rounded-xl text-center text-xl font-serif font-bold focus:outline-none focus:border-[#e89b88]">
+        <input inputmode="numeric" maxlength="1" class="pin w-12 h-14 bg-[#180a06] border border-[#522f24] rounded-xl text-center text-xl font-serif font-bold focus:outline-none focus:border-[#e89b88]">
+        <input inputmode="numeric" maxlength="1" class="pin w-12 h-14 bg-[#180a06] border border-[#522f24] rounded-xl text-center text-xl font-serif font-bold focus:outline-none focus:border-[#e89b88]">
+      </div>
+      <button id="unlockBtn" class="w-full bg-[#e3b4a2] hover:bg-[#d8a390] text-[#24140f] font-bold py-3 rounded-2xl transition">Open your surprise 🗝</button>
+      <p id="pinHint" class="text-[11px] text-[#9d7d74] mt-3">Hint: a date only we would know ♡</p>
     </div>
+  </section>
 
-    <div class="editor-block">
-      <label class="editor-label">Music — I Love You 3000</label>
-      <p class="editor-help">Upload your own audio file for “I Love You 3000”. Music starts after Selena taps into the story.</p>
-      <input id="musicUploader" type="file" accept="audio/*" />
-      <div class="editor-inline">
-        <button id="previewMusic" class="secondary-btn editor-action">Preview music</button>
-        <button id="clearMusic" class="secondary-btn editor-action">Remove music</button>
-      </div>
-      <p id="musicStatus" class="editor-status">No audio uploaded yet.</p>
-    </div>
+  <div id="birthdayContent" class="hidden">
+    <header class="sticky top-0 z-40 bg-[#1d100c]/90 backdrop-blur-md border-b border-[#3c251e] px-5 py-3.5 flex items-center justify-between">
+      <span class="font-serif italic text-xl font-bold tracking-wide text-[#f4cfbf]">Selena ♡</span>
+      <div class="flex items-center gap-2 bg-[#2d1913] border border-[#4d2d23] px-3 py-1 rounded-full text-[10px] text-[#eec1af]"><span>✦</span><span class="font-semibold tracking-wider uppercase">I Love You 3000</span></div>
+      <div class="w-8 h-8 rounded-full bg-[#3c251e] border border-[#5a362a] flex items-center justify-center text-xs font-semibold text-[#f4cfbf]">Q</div>
+    </header>
 
-    <div class="editor-block note-block">
-      <strong>When you are ready to publish:</strong>
-      <p>Browser uploads are only for editing/testing on this device. We can move the final photos and song into the website files before publishing.</p>
-    </div>
-  </aside>
-
-  <main>
-    <section id="lockScreen" class="screen lock-screen active">
-      <div class="soft-orb orb-one"></div>
-      <div class="soft-orb orb-two"></div>
-      <div class="card glass lock-card">
-        <div class="tiny-heart">♡</div>
-        <p class="eyebrow">A little something for</p>
-        <h1>Selena</h1>
-        <p class="muted">Only you are allowed in.</p>
-        <div class="pin-row" aria-label="4 digit code">
-          <input inputmode="numeric" maxlength="1" class="pin" />
-          <input inputmode="numeric" maxlength="1" class="pin" />
-          <input inputmode="numeric" maxlength="1" class="pin" />
-          <input inputmode="numeric" maxlength="1" class="pin" />
+    <main class="max-w-md mx-auto px-4 pt-6 space-y-6">
+      <section id="birthday-story" class="bg-[#24140f] border border-[#44271e] rounded-3xl p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between text-xs text-[#d8a898]"><span class="tracking-wider uppercase font-semibold">December 2 • Just for you</span><span class="text-rose-300">🎂</span></div>
+        <div><h2 class="font-serif italic text-4xl text-[#fdf6f3] leading-tight">Happy Birthday,<br>Selena ♡</h2><p class="text-sm text-[#cbb0a6] mt-2 leading-relaxed">Today is about you. Your smile, your heart, and all the little things that make life better.</p></div>
+        <button id="wishBtn" class="w-full bg-[#1b0d09] border border-[#42241b] rounded-2xl p-4 flex items-center justify-between text-left"><span class="text-xs text-[#e4b9a9]">Make a wish ✨</span><span id="wishIcon">↓</span></button>
+        <div id="musicChip" class="hidden bg-[#180a06] border border-[#3e2118] rounded-2xl p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3"><div class="w-9 h-9 rounded-full bg-[#341b14] border border-[#542d22] flex items-center justify-center text-[#e89b88]">♪</div><div><p class="text-[10px] uppercase tracking-wider text-[#9f8076]">Now Playing</p><p class="text-sm font-semibold text-[#f8ede8]">I Love You 3000</p></div></div>
+          <button id="musicToggle" class="w-8 h-8 rounded-full bg-[#341b14] border border-[#522e23] text-xs text-[#e89b88]">▶</button>
         </div>
-        <button id="unlockBtn" class="primary-btn">Open your surprise</button>
-        <p id="pinHint" class="hint">Hint: a date only we would know ♡</p>
-      </div>
-    </section>
-
-    <section id="birthdayScreen" class="screen birthday-screen">
-      <div class="confetti-layer" id="confettiLayer"></div>
-      <div class="hero-wrap">
-        <p class="eyebrow">December • just for you</p>
-        <h2 class="hero-title">Happy Birthday,<br><span>Selena ♡</span></h2>
-        <p class="hero-copy">Today is about you. Your smile, your heart, and all the little things that make life better.</p>
-        <div class="cake" aria-label="birthday cake">
-          <div class="candle"><div class="flame" id="flame"></div></div>
-          <div class="frosting"></div>
-          <div class="cake-body"></div>
-          <div class="plate"></div>
-        </div>
-        <button id="blowBtn" class="secondary-btn">Make a wish ✨</button>
-        <button id="startBtn" class="primary-btn hidden">Start your birthday story</button>
-      </div>
-    </section>
-
-    <section id="story" class="content-page hidden">
-      <div id="musicChip" class="music-chip hidden">
-        <div class="music-disc">♪</div>
-        <div class="music-meta">
-          <span>Now playing</span>
-          <strong>I Love You 3000</strong>
-        </div>
-        <button id="musicToggle" class="music-toggle" aria-label="Play or pause music">Ⅱ</button>
-      </div>
-      <audio id="bgMusic" loop preload="metadata"></audio>
-
-      <section class="section intro-section">
-        <p class="eyebrow">Chapter one</p>
-        <h3>Us, in little moments.</h3>
-        <p class="section-copy">Not every favorite memory is a big one. Sometimes it is just a random picture, a normal day, or a moment I never want to forget.</p>
+        <audio id="bgMusic" loop preload="metadata"></audio>
       </section>
 
-      <section class="section memories-section">
-        <div class="section-heading-row">
-          <div>
-            <p class="eyebrow">Our memories</p>
-            <h3>Some favorites</h3>
-          </div>
-          <span class="swipe-note">swipe →</span>
-        </div>
-        <div id="memoryStrip" class="memory-strip">
-          <article class="polaroid tilt-left">
-            <div class="photo placeholder-photo photo-one"><span>Photo 1</span></div>
-            <p>Still one of my favorite days.</p>
-          </article>
-          <article class="polaroid tilt-right">
-            <div class="photo placeholder-photo photo-two"><span>Photo 2</span></div>
-            <p>This one always makes me smile.</p>
-          </article>
-          <article class="polaroid tilt-left">
-            <div class="photo placeholder-photo photo-three"><span>Photo 3</span></div>
-            <p>Just us being us.</p>
-          </article>
-          <article class="polaroid tilt-right">
-            <div class="photo placeholder-photo photo-four"><span>Photo 4</span></div>
-            <p>More of this, please.</p>
-          </article>
+      <section id="moments" class="space-y-3">
+        <div class="px-1"><span class="text-[11px] uppercase tracking-widest text-[#d8a898] font-semibold">Chapter One</span><h3 class="font-serif text-2xl text-[#fdf7f4]">Us, in little moments.</h3><p class="text-xs text-[#ba9a8f] mt-1 leading-relaxed">Not every favorite memory is a big one. Sometimes it is just a random picture, a normal day, or a moment I never want to forget.</p></div>
+        <div class="flex items-center justify-between px-1 pt-2"><span class="text-xs font-serif italic text-[#d8a898]">Our memories • Some favorites</span><span class="text-[11px] text-[#9f8076]">swipe →</span></div>
+        <div id="memoryStrip" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 pt-1">
+          <div class="min-w-[240px] bg-[#24140f] border border-[#44271e] rounded-2xl p-3"><div class="h-44 rounded-xl bg-[#341b14] flex items-center justify-center text-[#8e6f65] mb-3">Photo 1</div><p class="text-xs text-[#f2e2db]">Still one of my favorite days.</p></div>
+          <div class="min-w-[240px] bg-[#24140f] border border-[#44271e] rounded-2xl p-3"><div class="h-44 rounded-xl bg-[#341b14] flex items-center justify-center text-[#8e6f65] mb-3">Photo 2</div><p class="text-xs text-[#f2e2db]">This one always makes me smile.</p></div>
+          <div class="min-w-[240px] bg-[#24140f] border border-[#44271e] rounded-2xl p-3"><div class="h-44 rounded-xl bg-[#341b14] flex items-center justify-center text-[#8e6f65] mb-3">Photo 3</div><p class="text-xs text-[#f2e2db]">Just us being us.</p></div>
         </div>
       </section>
 
-      <section class="section love-section">
-        <p class="eyebrow">A few little truths</p>
-        <h3>Things I love about you</h3>
-        <div class="love-grid">
-          <button class="love-card"><span class="front">01</span><span class="back">The way you care more than you admit.</span></button>
-          <button class="love-card"><span class="front">02</span><span class="back">Your smile when something actually surprises you.</span></button>
-          <button class="love-card"><span class="front">03</span><span class="back">How you make ordinary days feel less ordinary.</span></button>
-          <button class="love-card"><span class="front">04</span><span class="back">Your determination, even when things get hard.</span></button>
-          <button class="love-card"><span class="front">05</span><span class="back">The little things you do that nobody else notices.</span></button>
-          <button class="love-card"><span class="front">06</span><span class="back">That life feels warmer with you in it.</span></button>
-        </div>
-        <p class="tap-note">Tap each card ♡</p>
-      </section>
-
-      <section class="section letter-section">
-        <div class="letter-paper">
-          <p class="eyebrow">For you</p>
-          <h3>My birthday letter</h3>
-          <p>Selena,</p>
-          <p>I wanted to make something that felt a little more personal than just saying “happy birthday.” You deserve a day that feels thoughtful, peaceful, fun, and completely yours.</p>
-          <p>I hope this year gives you more reasons to smile, more moments you are proud of, and more memories we get to look back on together.</p>
-          <p>Happy birthday to my favorite person. ♡</p>
-          <p class="signature">— Quý</p>
+      <section class="space-y-3">
+        <div class="flex items-center justify-between px-1"><div><span class="text-[11px] uppercase tracking-widest text-[#d8a898] font-semibold">A few little truths</span><h3 class="font-serif text-2xl text-[#fdf7f4]">Things I love about you</h3></div><span class="text-[10px] bg-[#2b1812] border border-[#4a2b20] px-2.5 py-1 rounded-full text-[#d8a898]">Tap each ♡</span></div>
+        <div class="space-y-2">
+          <details class="bg-[#24140f] border border-[#44271e] rounded-2xl p-3.5"><summary class="cursor-pointer list-none text-xs font-medium"><span class="font-serif font-bold text-[#d8a898] mr-3">01</span>The way you care more than you admit.</summary></details>
+          <details class="bg-[#24140f] border border-[#44271e] rounded-2xl p-3.5"><summary class="cursor-pointer list-none text-xs font-medium"><span class="font-serif font-bold text-[#d8a898] mr-3">02</span>Your smile when something actually surprises you.</summary></details>
+          <details class="bg-[#24140f] border border-[#44271e] rounded-2xl p-3.5"><summary class="cursor-pointer list-none text-xs font-medium"><span class="font-serif font-bold text-[#d8a898] mr-3">03</span>How you make ordinary days feel less ordinary.</summary></details>
+          <details class="bg-[#24140f] border border-[#44271e] rounded-2xl p-3.5"><summary class="cursor-pointer list-none text-xs font-medium"><span class="font-serif font-bold text-[#d8a898] mr-3">04</span>Your determination, even when things get hard.</summary></details>
+          <details class="bg-[#24140f] border border-[#44271e] rounded-2xl p-3.5"><summary class="cursor-pointer list-none text-xs font-medium"><span class="font-serif font-bold text-[#d8a898] mr-3">05</span>The little things you do that nobody else notices.</summary></details>
+          <details class="bg-[#24140f] border border-[#44271e] rounded-2xl p-3.5"><summary class="cursor-pointer list-none text-xs font-medium"><span class="font-serif font-bold text-[#d8a898] mr-3">06</span>That life feels warmer with you in it.</summary></details>
         </div>
       </section>
 
-      <section class="section finale-section">
-        <p class="eyebrow">One more thing...</p>
-        <h3>Your birthday is not over yet.</h3>
-        <button id="revealDinnerBtn" class="primary-btn">Tap for tonight's plan</button>
-        <div id="dinnerReveal" class="dinner-card hidden">
-          <p class="small-label">TONIGHT</p>
-          <h4>Dinner for two ♡</h4>
-          <p>Dress cute. I made a reservation for us.</p>
-          <div class="reservation-row">
-            <span>📍 Surprise location</span>
-            <span>🕢 7:30 PM</span>
-          </div>
-          <p class="final-note">And yes, there is one more gift waiting after dinner.</p>
-        </div>
+      <section id="letters" class="bg-[#24140f] border border-[#44271e] rounded-3xl p-6 shadow-xl space-y-4">
+        <span class="text-[11px] uppercase tracking-widest text-[#d8a898] font-semibold">For you</span><h3 class="font-serif text-2xl text-[#fdf7f4]">My birthday letter</h3>
+        <div class="bg-[#1b0d09] border border-[#3e2118] rounded-2xl p-5 space-y-3 font-serif text-sm leading-relaxed text-[#edd6cd]"><p class="italic text-base text-[#fcf3ee]">Selena,</p><p>I wanted to make something that felt a little more personal than just saying “happy birthday.” You deserve a day that feels thoughtful, peaceful, fun, and completely yours.</p><p>I hope this year gives you more reasons to smile, more moments you are proud of, and more memories we get to look back on together.</p><p>Happy birthday to my favorite person. ♡</p><p class="text-right italic text-lg text-[#f4cfbf] pt-2">— Quý</p></div>
       </section>
 
-      <footer>
-        Made with love, just for Selena ♡
-      </footer>
-    </section>
-  </main>
+      <section id="wishes" class="space-y-2 text-center pt-2">
+        <span class="text-[11px] uppercase tracking-widest text-[#d8a898] font-semibold">One more thing...</span><h3 class="font-serif text-2xl text-[#fdf7f4]">Your birthday is not over yet.</h3>
+        <div class="bg-[#24140f] border border-[#44271e] rounded-3xl p-6 shadow-xl space-y-3 mt-3"><div class="w-12 h-12 mx-auto rounded-full bg-[#341b14] border border-[#562e22] flex items-center justify-center text-xl">🍴</div><button id="revealDinnerBtn" class="w-full font-serif text-xl text-[#fdf7f4]">Tap for tonight's plan</button><p class="text-xs uppercase tracking-widest text-[#d8a898]">A secret evening awaits ♡</p><div id="dinnerReveal" class="hidden bg-[#1a0c08] border border-[#3e2118] rounded-xl p-3 text-xs text-[#cfb2a6] text-left space-y-1"><p class="font-semibold text-[#f8ede8]">TONIGHT • Dinner for two ♡</p><p>Dress cute. I made a reservation for us.</p><p class="text-[#e89b88]">📍 Surprise location • 🕢 7:30 PM</p><p class="pt-2 text-[#a9897d]">And yes, there is one more gift waiting after dinner.</p></div></div>
+        <div class="pt-4 pb-2"><span class="text-xs text-[#8c6f66] bg-[#22120e] px-4 py-1.5 rounded-full border border-[#381e17]">♡ Made with love, just for Selena ♡</span></div>
+      </section>
+    </main>
+
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-[#1d100c]/95 backdrop-blur-md border-t border-[#3c251e] py-2 px-6"><div class="max-w-md mx-auto flex items-center justify-around text-center"><a href="#birthday-story" class="flex flex-col items-center text-[#e89b88]"><span>📖</span><span class="text-[10px]">Story</span></a><a href="#letters" class="flex flex-col items-center text-[#a5857b]"><span>♡</span><span class="text-[10px]">Letters</span></a><a href="#moments" class="flex flex-col items-center text-[#a5857b]"><span>🖼</span><span class="text-[10px]">Moments</span></a><a href="#wishes" class="flex flex-col items-center text-[#a5857b]"><span>🎂</span><span class="text-[10px]">Wishes</span></a></div></nav>
+  </div>
 
   <script src="script.js"></script>
 </body>
