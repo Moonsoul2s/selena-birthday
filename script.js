@@ -226,14 +226,82 @@ photoUploader.addEventListener('change',async()=>{const files=[...photoUploader.
 clearPhotos.addEventListener('click',async()=>{await dbDelete('photos');location.reload()});
 
 function applyMusicFile(file){if(currentMusicUrl)URL.revokeObjectURL(currentMusicUrl);currentMusicUrl=URL.createObjectURL(file);bgMusic.src=currentMusicUrl;musicChip.classList.remove('hidden');musicStatus.textContent=`Loaded: ${file.name}`}
-async function loadSavedMusic(){const music=await dbGet('music');if(music)applyMusicFile(music)}
+async function loadPublishedMusic(){
+  if(editMode)return false;
+  try{
+    const r=await fetch('/assets/music/birthday-music.mp3',{method:'HEAD',cache:'no-store'});
+    if(!r.ok)return false;
+    bgMusic.src='/assets/music/birthday-music.mp3';
+    musicChip.classList.remove('hidden');
+    musicStatus.textContent='Published music ready.';
+    return true;
+  }catch{return false}
+}
+async function loadSavedMusic(){
+  if(!editMode)return loadPublishedMusic();
+  const music=await dbGet('music');
+  if(music)applyMusicFile(music);
+}
 musicUploader.addEventListener('change',async()=>{const file=musicUploader.files[0];if(!file)return;await dbSet('music',file);applyMusicFile(file)});
 previewMusic.addEventListener('click',async()=>{if(!bgMusic.src){musicStatus.textContent='Upload the song first.';return}if(bgMusic.paused){await bgMusic.play();previewMusic.textContent='Pause preview';musicChip.classList.remove('paused')}else{bgMusic.pause();previewMusic.textContent='Preview music';musicChip.classList.add('paused')}});
 clearMusic.addEventListener('click',async()=>{bgMusic.pause();await dbDelete('music');bgMusic.removeAttribute('src');musicChip.classList.add('hidden');musicStatus.textContent='No audio uploaded yet.'});
 musicToggle.addEventListener('click',async()=>{if(bgMusic.paused){await bgMusic.play();musicToggle.textContent='Ⅱ';musicChip.classList.remove('paused')}else{bgMusic.pause();musicToggle.textContent='▶';musicChip.classList.add('paused')}});
 
 const editMode=new URLSearchParams(location.search).get('edit')==='1';
-if(editMode)editToggle.classList.remove('hidden');
+
+async function fileToBase64(file){
+  const buf=await file.arrayBuffer();
+  const bytes=new Uint8Array(buf);
+  let binary='';
+  const chunk=0x8000;
+  for(let i=0;i<bytes.length;i+=chunk){
+    binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));
+  }
+  return btoa(binary);
+}
+
+async function publishMusic(){
+  const music=await dbGet('music');
+  if(!music){musicStatus.textContent='Upload/choose your music first.';return}
+  if(!/audio\/mpeg|audio\/mp3/i.test(music.type||'')&&!/\.mp3$/i.test(music.name||'')){
+    musicStatus.textContent='Publish currently supports MP3. Please choose an MP3 file.';
+    return;
+  }
+  if(music.size>20*1024*1024){
+    musicStatus.textContent='Please use an MP3 under 20 MB.';
+    return;
+  }
+  const token=prompt('GitHub token with Contents: Read and write for Moonsoul2s/selena-birthday. It is used once and is not saved.');
+  if(!token)return;
+  const api='https://api.github.com/repos/Moonsoul2s/selena-birthday/contents/assets/music/birthday-music.mp3';
+  const headers={'Accept':'application/vnd.github+json','Authorization':`Bearer ${token.trim()}`,'X-GitHub-Api-Version':'2022-11-28'};
+  try{
+    musicStatus.textContent='Publishing music…';
+    let sha;
+    const existing=await fetch(api,{headers});
+    if(existing.ok){const info=await existing.json();sha=info.sha}
+    const body={message:'Publish birthday music',content:await fileToBase64(music),branch:'main'};
+    if(sha)body.sha=sha;
+    const res=await fetch(api,{method:'PUT',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      throw new Error(err.message||`GitHub error ${res.status}`);
+    }
+    musicStatus.textContent='Published ✓ This music is now part of the real website.';
+  }catch(e){
+    musicStatus.textContent='Publish failed: '+e.message;
+  }
+}
+
+if(editMode){
+  editToggle.classList.remove('hidden');
+  const publishMusicBtn=document.createElement('button');
+  publishMusicBtn.type='button';
+  publishMusicBtn.className='secondary-btn';
+  publishMusicBtn.textContent='Publish Music';
+  publishMusicBtn.addEventListener('click',publishMusic);
+  if(musicStatus?.parentElement)musicStatus.parentElement.appendChild(publishMusicBtn);
+}
 editToggle.addEventListener('click',()=>editorPanel.classList.remove('hidden'));
 closeEditor.addEventListener('click',()=>editorPanel.classList.add('hidden'));
 
