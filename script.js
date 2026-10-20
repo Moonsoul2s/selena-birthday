@@ -258,9 +258,10 @@ function applyMusicFile(file){if(currentMusicUrl)URL.revokeObjectURL(currentMusi
 async function loadPublishedMusic(){
   if(editMode)return false;
   try{
-    const r=await fetch('/assets/music/birthday-music.mp3',{method:'HEAD',cache:'no-store'});
-    if(!r.ok)return false;
-    bgMusic.src='/assets/music/birthday-music.mp3';
+    const meta=await fetch('/api/media-versions',{cache:'no-store'}).then(r=>r.json());
+    const v=meta.settings?.music_version;
+    if(!v)return false;
+    bgMusic.src='/api/music?v='+encodeURIComponent(v);
     musicChip.classList.remove('hidden');
     musicStatus.textContent='Published music ready.';
     return true;
@@ -271,16 +272,42 @@ async function loadSavedMusic(){
   const music=await dbGet('music');
   if(music)applyMusicFile(music);
 }
-musicUploader.addEventListener('change',async()=>{const file=musicUploader.files[0];if(!file)return;await dbSet('music',file);applyMusicFile(file)});
+musicUploader.addEventListener('change',async()=>{const file=musicUploader.files[0];if(!file)return;if(!/audio\/mpeg|audio\/mp3/i.test(file.type||'')&&!/\.mp3$/i.test(file.name||'')){musicStatus.textContent='Please choose an MP3 file.';return}await dbSet('music',file);applyMusicFile(file);musicStatus.textContent='Ready to publish: '+file.name});
 previewMusic.addEventListener('click',async()=>{if(!bgMusic.src){musicStatus.textContent='Upload the song first.';return}if(bgMusic.paused){await bgMusic.play();previewMusic.textContent='Pause preview';musicChip.classList.remove('paused')}else{bgMusic.pause();previewMusic.textContent='Preview music';musicChip.classList.add('paused')}});
 clearMusic.addEventListener('click',async()=>{bgMusic.pause();await dbDelete('music');bgMusic.removeAttribute('src');musicChip.classList.add('hidden');musicStatus.textContent='No audio uploaded yet.'});
 musicToggle.addEventListener('click',async()=>{if(bgMusic.paused){await bgMusic.play();musicToggle.textContent='Ⅱ';musicChip.classList.remove('paused')}else{bgMusic.pause();musicToggle.textContent='▶';musicChip.classList.add('paused')}});
+
+async function publishMusicToR2(){
+  try{
+    const music=await dbGet('music');
+    if(!music){musicStatus.textContent='Choose an MP3 first.';return}
+    if(music.size>25*1024*1024){musicStatus.textContent='MP3 must be under 25 MB.';return}
+    if(!await ensureBirthdayAdmin())return;
+    publishMusicBtn.disabled=true;
+    musicStatus.textContent='Publishing music…';
+    let res=await fetch('/api/admin/music',{method:'PUT',headers:{'authorization':'Bearer '+birthdayAdminToken,'content-type':'audio/mpeg'},body:music});
+    if(res.status===401){
+      sessionStorage.removeItem('birthdayAdminToken');birthdayAdminToken='';
+      if(!await ensureBirthdayAdmin())return;
+      res=await fetch('/api/admin/music',{method:'PUT',headers:{'authorization':'Bearer '+birthdayAdminToken,'content-type':'audio/mpeg'},body:music});
+    }
+    const j=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(j.error||'Music publish failed.');
+    musicStatus.textContent='Published ✓ Music is live on the real website.';
+  }catch(e){musicStatus.textContent=e.message}
+  finally{publishMusicBtn.disabled=false}
+}
+const publishMusicBtn=document.createElement('button');
+publishMusicBtn.type='button';
+publishMusicBtn.className='secondary-btn editor-action';
+publishMusicBtn.textContent='Publish Music';
+publishMusicBtn.addEventListener('click',publishMusicToR2);
 
 const editMode=new URLSearchParams(location.search).get('edit')==='1';
 
 const photoPublishStatus=document.createElement('p');photoPublishStatus.className='editor-status';photoPublishStatus.textContent='Choose photos, then publish them to the live website.';
 const publishPhotosBtn=document.createElement('button');publishPhotosBtn.type='button';publishPhotosBtn.className='secondary-btn editor-action';publishPhotosBtn.textContent='Publish Photos';publishPhotosBtn.addEventListener('click',publishPhotos);
-if(editMode){editToggle.classList.remove('hidden');photoUploader?.parentElement?.append(publishPhotosBtn,photoPublishStatus)}
+if(editMode){editToggle.classList.remove('hidden');photoUploader?.parentElement?.append(publishPhotosBtn,photoPublishStatus);musicStatus?.parentElement?.append(publishMusicBtn)}
 editToggle.addEventListener('click',()=>editorPanel.classList.remove('hidden'));
 closeEditor.addEventListener('click',()=>editorPanel.classList.add('hidden'));
 
