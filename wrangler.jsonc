@@ -5,5 +5,5 @@
   "compatibility_date": "2026-10-20",
   "keep_vars": true,
   "assets": {"directory": "./public","binding": "ASSETS"},
-  "d1_databases": [{"binding":"DB","database_name":"selena-birthday-db","database_id":"REPLACE_WITH_D1_DATABASE_ID"}]
+  "d1_databases": [{"binding":"DB","database_name":"selena-birthday-db","database_id":"ca3fc825-b867-4bb9-868d-951394518856"}]
 }
