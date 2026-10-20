@@ -221,9 +221,38 @@ revealDinnerBtn.addEventListener('click',()=>{dinnerReveal.classList.remove('hid
 function launchConfetti(){const layer=$('confettiLayer'),palette=['#d78f99','#d8b77a','#f4c8cf','#e9ded9','#a85f69'];for(let i=0;i<52;i++){const bit=document.createElement('span');bit.className='confetti';bit.style.left=`${Math.random()*100}%`;bit.style.top=`${-10-Math.random()*30}px`;bit.style.background=palette[Math.floor(Math.random()*palette.length)];bit.style.animationDelay=`${Math.random()*.7}s`;bit.style.animationDuration=`${2.1+Math.random()*1.8}s`;layer.appendChild(bit);setTimeout(()=>bit.remove(),4300)}}
 
 function renderPhotos(files){if(!files?.length)return;memoryStrip.innerHTML='';const captions=['Still one of my favorite days.','This one always makes me smile.','Just us being us.','More of this, please.','A moment I never want to forget.','My favorite person.','One for the memory book.','Always us. ♡'];files.slice(0,8).forEach((file,i)=>{const url=URL.createObjectURL(file),article=document.createElement('article');article.className=`polaroid ${i%2?'tilt-right':'tilt-left'}`;article.innerHTML=`<div class="photo"><img src="${url}" alt="Memory ${i+1}"></div><p>${captions[i]}</p>`;memoryStrip.appendChild(article)})}
-async function loadSavedPhotos(){const photos=await dbGet('photos');if(photos?.length)renderPhotos(photos)}
-photoUploader.addEventListener('change',async()=>{const files=[...photoUploader.files].slice(0,8);if(!files.length)return;await dbSet('photos',files);renderPhotos(files)});
-clearPhotos.addEventListener('click',async()=>{await dbDelete('photos');location.reload()});
+async function loadSavedPhotos(){if(!editMode)return loadPublishedPhotos();const photos=await dbGet('photos');if(photos?.length){pendingPhotos=photos;renderPhotos(photos)}}
+let pendingPhotos=[];
+photoUploader.addEventListener('change',async()=>{const files=[...photoUploader.files].slice(0,8);if(!files.length)return;pendingPhotos=files;await dbSet('photos',files);renderPhotos(files);photoPublishStatus.textContent=files.length+' photo(s) ready to publish.'});
+clearPhotos.addEventListener('click',async()=>{await dbDelete('photos');pendingPhotos=[];location.reload()});
+
+function blobToBase64(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]||'');r.onerror=()=>reject(new Error('Could not read photo.'));r.readAsDataURL(blob)})}
+async function compressPhoto(file){
+ const bmp=await createImageBitmap(file);let w=bmp.width,h=bmp.height,s=Math.min(1,1000/Math.max(w,h));w=Math.round(w*s);h=Math.round(h*s);
+ const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(bmp,0,0,w,h);bmp.close?.();
+ let q=.86,blob=await new Promise(x=>cv.toBlob(x,'image/jpeg',q));while(blob&&blob.size>1200000&&q>.58){q-=.07;blob=await new Promise(x=>cv.toBlob(x,'image/jpeg',q))}
+ if(!blob||blob.size>1350000)throw new Error('Photo is too large.');return blob;
+}
+let birthdayAdminToken=sessionStorage.getItem('birthdayAdminToken')||'';
+async function birthdayApi(path,opts={}){const res=await fetch(path,{...opts,headers:{'content-type':'application/json',...(birthdayAdminToken?{authorization:'Bearer '+birthdayAdminToken}:{}),...(opts.headers||{})}});const j=await res.json().catch(()=>({}));if(!res.ok)throw new Error(j.error||'Request failed');return j}
+async function ensureBirthdayAdmin(){if(birthdayAdminToken)return true;const password=prompt('Birthday admin password');if(!password)return false;const j=await birthdayApi('/api/admin/login',{method:'POST',body:JSON.stringify({password})});birthdayAdminToken=j.token;sessionStorage.setItem('birthdayAdminToken',birthdayAdminToken);return true}
+async function publishPhotos(){
+ try{
+  if(!pendingPhotos.length){const saved=await dbGet('photos');if(saved?.length)pendingPhotos=saved}
+  if(!pendingPhotos.length){photoPublishStatus.textContent='Choose photos first.';return}
+  if(!await ensureBirthdayAdmin())return;
+  publishPhotosBtn.disabled=true;photoPublishStatus.textContent='Publishing…';
+  for(let i=0;i<pendingPhotos.length;i++){const blob=await compressPhoto(pendingPhotos[i]),base64=await blobToBase64(blob);await birthdayApi('/api/admin/media/memory'+(i+1),{method:'POST',body:JSON.stringify({mime:blob.type,base64})})}
+  for(let i=pendingPhotos.length;i<8;i++){try{await birthdayApi('/api/admin/media/memory'+(i+1),{method:'DELETE'})}catch{}}
+  photoPublishStatus.textContent='Published ✓ Photos are live.';
+ }catch(e){photoPublishStatus.textContent=e.message}finally{publishPhotosBtn.disabled=false}
+}
+async function loadPublishedPhotos(){
+ if(editMode)return;
+ try{const j=await fetch('/api/media-versions',{cache:'no-store'}).then(r=>r.json());const items=[];for(let i=1;i<=8;i++){const v=j.settings?.['media_memory'+i+'_version'];if(v)items.push({url:'/api/site-media/memory'+i+'?v='+encodeURIComponent(v)})}if(!items.length)return;
+ const captions=['Still one of my favorite days.','This one always makes me smile.','Just us being us.','More of this, please.','A moment I never want to forget.','My favorite person.','One for the memory book.','Always us. ♡'];memoryStrip.innerHTML='';items.forEach((x,i)=>{const a=document.createElement('article');a.className='polaroid '+(i%2?'tilt-right':'tilt-left');a.innerHTML='<div class="photo"><img src="'+x.url+'" alt="Memory '+(i+1)+'"></div><p>'+captions[i]+'</p>';memoryStrip.appendChild(a)})
+ }catch{}
+}
 
 function applyMusicFile(file){if(currentMusicUrl)URL.revokeObjectURL(currentMusicUrl);currentMusicUrl=URL.createObjectURL(file);bgMusic.src=currentMusicUrl;musicChip.classList.remove('hidden');musicStatus.textContent=`Loaded: ${file.name}`}
 async function loadPublishedMusic(){
@@ -249,59 +278,9 @@ musicToggle.addEventListener('click',async()=>{if(bgMusic.paused){await bgMusic.
 
 const editMode=new URLSearchParams(location.search).get('edit')==='1';
 
-async function fileToBase64(file){
-  const buf=await file.arrayBuffer();
-  const bytes=new Uint8Array(buf);
-  let binary='';
-  const chunk=0x8000;
-  for(let i=0;i<bytes.length;i+=chunk){
-    binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));
-  }
-  return btoa(binary);
-}
-
-async function publishMusic(){
-  const music=await dbGet('music');
-  if(!music){musicStatus.textContent='Upload/choose your music first.';return}
-  if(!/audio\/mpeg|audio\/mp3/i.test(music.type||'')&&!/\.mp3$/i.test(music.name||'')){
-    musicStatus.textContent='Publish currently supports MP3. Please choose an MP3 file.';
-    return;
-  }
-  if(music.size>20*1024*1024){
-    musicStatus.textContent='Please use an MP3 under 20 MB.';
-    return;
-  }
-  const token=prompt('GitHub token with Contents: Read and write for Moonsoul2s/selena-birthday. It is used once and is not saved.');
-  if(!token)return;
-  const api='https://api.github.com/repos/Moonsoul2s/selena-birthday/contents/assets/music/birthday-music.mp3';
-  const headers={'Accept':'application/vnd.github+json','Authorization':`Bearer ${token.trim()}`,'X-GitHub-Api-Version':'2022-11-28'};
-  try{
-    musicStatus.textContent='Publishing music…';
-    let sha;
-    const existing=await fetch(api,{headers});
-    if(existing.ok){const info=await existing.json();sha=info.sha}
-    const body={message:'Publish birthday music',content:await fileToBase64(music),branch:'main'};
-    if(sha)body.sha=sha;
-    const res=await fetch(api,{method:'PUT',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      throw new Error(err.message||`GitHub error ${res.status}`);
-    }
-    musicStatus.textContent='Published ✓ This music is now part of the real website.';
-  }catch(e){
-    musicStatus.textContent='Publish failed: '+e.message;
-  }
-}
-
-if(editMode){
-  editToggle.classList.remove('hidden');
-  const publishMusicBtn=document.createElement('button');
-  publishMusicBtn.type='button';
-  publishMusicBtn.className='secondary-btn';
-  publishMusicBtn.textContent='Publish Music';
-  publishMusicBtn.addEventListener('click',publishMusic);
-  if(musicStatus?.parentElement)musicStatus.parentElement.appendChild(publishMusicBtn);
-}
+const photoPublishStatus=document.createElement('p');photoPublishStatus.className='editor-status';photoPublishStatus.textContent='Choose photos, then publish them to the live website.';
+const publishPhotosBtn=document.createElement('button');publishPhotosBtn.type='button';publishPhotosBtn.className='secondary-btn editor-action';publishPhotosBtn.textContent='Publish Photos';publishPhotosBtn.addEventListener('click',publishPhotos);
+if(editMode){editToggle.classList.remove('hidden');photoUploader?.parentElement?.append(publishPhotosBtn,photoPublishStatus)}
 editToggle.addEventListener('click',()=>editorPanel.classList.remove('hidden'));
 closeEditor.addEventListener('click',()=>editorPanel.classList.add('hidden'));
 
