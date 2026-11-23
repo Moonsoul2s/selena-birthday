@@ -305,9 +305,64 @@ publishMusicBtn.addEventListener('click',publishMusicToR2);
 
 const editMode=new URLSearchParams(location.search).get('edit')==='1';
 
+const captionPresets=[
+'Still one of my favorite days. ♡',
+'This one always makes me smile.',
+'Just us being us.',
+'A little moment I never want to forget.',
+'One of those days I wish I could replay.',
+'My favorite person, my favorite memory.',
+'You make ordinary days feel special.',
+'A memory that still feels like home.',
+'This picture says more than I could.',
+'One for our little memory book. ♡',
+'I would choose this moment again.',
+'Always us. ♡'
+];
+
+const captionPanel=document.createElement('div');
+captionPanel.style.cssText='display:grid;gap:14px;margin-top:16px';
+
+function makeCaptionEditor(slot,url,current){
+  const box=document.createElement('div');
+  box.style.cssText='border:1px solid #ead9dc;border-radius:16px;padding:12px;background:#fffafa;display:grid;gap:9px';
+  const img=document.createElement('img');
+  img.src=url; img.alt='Memory '+slot;
+  img.style.cssText='width:100%;max-height:220px;object-fit:cover;border-radius:12px';
+  const title=document.createElement('strong'); title.textContent='Photo '+slot;
+  const select=document.createElement('select');
+  select.style.cssText='width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;background:white';
+  const first=document.createElement('option'); first.value=''; first.textContent='Choose a caption'; select.appendChild(first);
+  captionPresets.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;if(t===current)o.selected=true;select.appendChild(o)});
+  const input=document.createElement('input');
+  input.type='text'; input.maxLength=160; input.placeholder='Or write your own caption…';
+  input.value=current&&!captionPresets.includes(current)?current:'';
+  input.style.cssText='width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:10px';
+  select.addEventListener('change',()=>{if(select.value)input.value=select.value});
+  const save=document.createElement('button'); save.type='button'; save.className='secondary-btn editor-action'; save.textContent='Save Caption';
+  const msg=document.createElement('p'); msg.className='editor-status';
+  save.addEventListener('click',async()=>{try{if(!await ensureBirthdayAdmin())return;save.disabled=true;msg.textContent='Saving…';const caption=input.value.trim()||select.value;await birthdayApi('/api/admin/caption/memory'+slot,{method:'POST',body:JSON.stringify({caption})});msg.textContent='Saved ✓';}catch(e){msg.textContent=e.message}finally{save.disabled=false}});
+  box.append(img,title,select,input,save,msg);
+  return box;
+}
+
+async function loadCaptionEditors(){
+  if(!editMode)return;
+  try{
+    const j=await fetch('/api/media-versions',{cache:'no-store'}).then(r=>r.json());
+    captionPanel.innerHTML='';
+    for(let i=1;i<=8;i++){
+      const v=j.settings?.['media_memory'+i+'_version'];
+      if(!v)continue;
+      const current=j.settings?.['media_memory'+i+'_caption']||'';
+      captionPanel.appendChild(makeCaptionEditor(i,'/api/site-media/memory'+i+'?v='+encodeURIComponent(v),current));
+    }
+  }catch{}
+}
+
 const photoPublishStatus=document.createElement('p');photoPublishStatus.className='editor-status';photoPublishStatus.textContent='Choose photos, then publish them to the live website.';
 const publishPhotosBtn=document.createElement('button');publishPhotosBtn.type='button';publishPhotosBtn.className='secondary-btn editor-action';publishPhotosBtn.textContent='Publish Photos';publishPhotosBtn.addEventListener('click',publishPhotos);
-if(editMode){editToggle.classList.remove('hidden');photoUploader?.parentElement?.append(publishPhotosBtn,photoPublishStatus);musicStatus?.parentElement?.append(publishMusicBtn)}
+if(editMode){editToggle.classList.remove('hidden');photoUploader?.parentElement?.append(publishPhotosBtn,photoPublishStatus,captionPanel);musicStatus?.parentElement?.append(publishMusicBtn);loadCaptionEditors()}
 editToggle.addEventListener('click',()=>editorPanel.classList.remove('hidden'));
 closeEditor.addEventListener('click',()=>editorPanel.classList.add('hidden'));
 
