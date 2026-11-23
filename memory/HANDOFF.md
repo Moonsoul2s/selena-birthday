@@ -30,3 +30,10 @@ Do not re-introduce the GitHub-token publishing flow. The desired UX is the same
 
 ## Known user expectation
 When user says “like nail web,” inspect the nail implementation first instead of inferring.
+
+
+## Caption editor
+- Edit Mode now loads already-published memory photos with caption controls.
+- Each photo has suggested captions plus a custom caption field.
+- Captions are saved separately in D1 and can be changed without re-uploading the photo.
+- Public memory cards use the saved D1 caption with the old generic caption as fallback.
