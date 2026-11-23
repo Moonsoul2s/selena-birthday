@@ -250,7 +250,7 @@ async function publishPhotos(){
 async function loadPublishedPhotos(){
  if(editMode)return;
  try{const j=await fetch('/api/media-versions',{cache:'no-store'}).then(r=>r.json());const items=[];for(let i=1;i<=8;i++){const v=j.settings?.['media_memory'+i+'_version'];if(v)items.push({url:'/api/site-media/memory'+i+'?v='+encodeURIComponent(v)})}if(!items.length)return;
- const captions=['Still one of my favorite days.','This one always makes me smile.','Just us being us.','More of this, please.','A moment I never want to forget.','My favorite person.','One for the memory book.','Always us. ♡'];memoryStrip.innerHTML='';items.forEach((x,i)=>{const a=document.createElement('article');a.className='polaroid '+(i%2?'tilt-right':'tilt-left');a.innerHTML='<div class="photo"><img src="'+x.url+'" alt="Memory '+(i+1)+'"></div><p>'+captions[i]+'</p>';memoryStrip.appendChild(a)})
+ const captions=['Still one of my favorite days.','This one always makes me smile.','Just us being us.','More of this, please.','A moment I never want to forget.','My favorite person.','One for the memory book.','Always us. ♡'];memoryStrip.innerHTML='';items.forEach((x,i)=>{const a=document.createElement('article');a.className='polaroid '+(i%2?'tilt-right':'tilt-left');const saved=j.settings?.['media_memory'+(i+1)+'_caption'];a.innerHTML='<div class="photo"><img src="'+x.url+'" alt="Memory '+(i+1)+'"></div><p>'+(saved||captions[i])+'</p>';memoryStrip.appendChild(a)})
  }catch{}
 }
 
