@@ -250,7 +250,7 @@ async function publishPhotos(){
 async function loadPublishedPhotos(){
  if(editMode)return;
  try{const j=await fetch('/api/media-versions',{cache:'no-store'}).then(r=>r.json());const items=[];for(let i=1;i<=8;i++){const v=j.settings?.['media_memory'+i+'_version'];if(v)items.push({url:'/api/site-media/memory'+i+'?v='+encodeURIComponent(v)})}if(!items.length)return;
- const captions=['Still one of my favorite days.','This one always makes me smile.','Just us being us.','More of this, please.','A moment I never want to forget.','My favorite person.','One for the memory book.','Always us. ♡'];memoryStrip.innerHTML='';items.forEach((x,i)=>{const a=document.createElement('article');a.className='polaroid '+(i%2?'tilt-right':'tilt-left');const saved=j.settings?.['media_memory'+(i+1)+'_caption'];a.innerHTML='<div class="photo"><img src="'+x.url+'" alt="Memory '+(i+1)+'"></div><p>'+(saved||captions[i])+'</p>';memoryStrip.appendChild(a)})
+ const captions=['Still one of my favorite days.','This one always makes me smile.','Just us being us.','More of this, please.','A moment I never want to forget.','My favorite person.','One for the memory book.','Always us. ♡'];memoryStrip.innerHTML='';items.forEach((x,i)=>{const slot=i+1;const a=document.createElement('article');a.className='polaroid '+(i%2?'tilt-right':'tilt-left');const saved=j.settings?.['media_memory'+slot+'_caption'];const pos=(j.settings?.['media_memory'+slot+'_position']||'50,50').split(',');const ox=Math.max(0,Math.min(100,Number(pos[0])||50)),oy=Math.max(0,Math.min(100,Number(pos[1])||50));a.innerHTML='<div class="photo"><img src="'+x.url+'" alt="Memory '+slot+'" style="object-position:'+ox+'% '+oy+'%"></div><p>'+(saved||captions[i])+'</p>';memoryStrip.appendChild(a)})
  }catch{}
 }
 
@@ -323,12 +323,27 @@ const captionPresets=[
 const captionPanel=document.createElement('div');
 captionPanel.style.cssText='display:grid;gap:14px;margin-top:16px';
 
-function makeCaptionEditor(slot,url,current){
+function makeCaptionEditor(slot,url,current,position='50,50'){
   const box=document.createElement('div');
   box.style.cssText='border:1px solid #ead9dc;border-radius:16px;padding:12px;background:#fffafa;display:grid;gap:9px';
+  const frame=document.createElement('div');
+  frame.style.cssText='width:100%;aspect-ratio:4/5;overflow:hidden;border-radius:12px;background:#eee;touch-action:none;cursor:grab;position:relative';
   const img=document.createElement('img');
   img.src=url; img.alt='Memory '+slot;
-  img.style.cssText='width:100%;max-height:220px;object-fit:cover;border-radius:12px';
+  img.draggable=false;
+  img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;user-select:none';
+  const pos=String(position||'50,50').split(',');
+  let x=Math.max(0,Math.min(100,Number(pos[0])||50));
+  let y=Math.max(0,Math.min(100,Number(pos[1])||50));
+  const applyPos=()=>img.style.objectPosition=x+'% '+y+'%';
+  applyPos();
+  frame.appendChild(img);
+  let dragging=false,lastX=0,lastY=0;
+  frame.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;frame.setPointerCapture?.(e.pointerId);frame.style.cursor='grabbing'});
+  frame.addEventListener('pointermove',e=>{if(!dragging)return;const rect=frame.getBoundingClientRect();x=Math.max(0,Math.min(100,x+(e.clientX-lastX)/Math.max(1,rect.width)*100));y=Math.max(0,Math.min(100,y+(e.clientY-lastY)/Math.max(1,rect.height)*100));lastX=e.clientX;lastY=e.clientY;applyPos()});
+  const endDrag=()=>{dragging=false;frame.style.cursor='grab'};
+  frame.addEventListener('pointerup',endDrag);frame.addEventListener('pointercancel',endDrag);
+  const dragHint=document.createElement('small');dragHint.textContent='Drag photo to adjust what shows in the frame';dragHint.style.color='#816d73';
   const title=document.createElement('strong'); title.textContent='Photo '+slot;
   const select=document.createElement('select');
   select.style.cssText='width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;background:white';
@@ -339,10 +354,12 @@ function makeCaptionEditor(slot,url,current){
   input.value=current&&!captionPresets.includes(current)?current:'';
   input.style.cssText='width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:10px';
   select.addEventListener('change',()=>{if(select.value)input.value=select.value});
+  const savePos=document.createElement('button');savePos.type='button';savePos.className='secondary-btn editor-action';savePos.textContent='Save Position';
   const save=document.createElement('button'); save.type='button'; save.className='secondary-btn editor-action'; save.textContent='Save Caption';
   const msg=document.createElement('p'); msg.className='editor-status';
-  save.addEventListener('click',async()=>{try{if(!await ensureBirthdayAdmin())return;save.disabled=true;msg.textContent='Saving…';const caption=input.value.trim()||select.value;await birthdayApi('/api/admin/caption/memory'+slot,{method:'POST',body:JSON.stringify({caption})});msg.textContent='Saved ✓';}catch(e){msg.textContent=e.message}finally{save.disabled=false}});
-  box.append(img,title,select,input,save,msg);
+  savePos.addEventListener('click',async()=>{try{if(!await ensureBirthdayAdmin())return;savePos.disabled=true;msg.textContent='Saving position…';await birthdayApi('/api/admin/position/memory'+slot,{method:'POST',body:JSON.stringify({x,y})});msg.textContent='Position saved ✓';}catch(e){msg.textContent=e.message}finally{savePos.disabled=false}});
+  save.addEventListener('click',async()=>{try{if(!await ensureBirthdayAdmin())return;save.disabled=true;msg.textContent='Saving caption…';const caption=input.value.trim()||select.value;await birthdayApi('/api/admin/caption/memory'+slot,{method:'POST',body:JSON.stringify({caption})});msg.textContent='Caption saved ✓';}catch(e){msg.textContent=e.message}finally{save.disabled=false}});
+  box.append(frame,dragHint,title,select,input,savePos,save,msg);
   return box;
 }
 
@@ -355,7 +372,8 @@ async function loadCaptionEditors(){
       const v=j.settings?.['media_memory'+i+'_version'];
       if(!v)continue;
       const current=j.settings?.['media_memory'+i+'_caption']||'';
-      captionPanel.appendChild(makeCaptionEditor(i,'/api/site-media/memory'+i+'?v='+encodeURIComponent(v),current));
+      const position=j.settings?.['media_memory'+i+'_position']||'50,50';
+      captionPanel.appendChild(makeCaptionEditor(i,'/api/site-media/memory'+i+'?v='+encodeURIComponent(v),current,position));
     }
   }catch{}
 }
