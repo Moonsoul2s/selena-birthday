@@ -317,8 +317,71 @@ const captionPresets=[
 'This picture says more than I could.',
 'One for our little memory book. ♡',
 'I would choose this moment again.',
-'Always us. ♡'
+'Always us. ♡',
+'One of my favorite versions of us.',
+'This day had my whole heart.',
+'You, me, and a memory worth keeping.',
+'Some moments deserve to stay forever.',
+'Exactly where I wanted to be.',
+'I wish I could freeze this moment.',
+'One of the moments that made me love us more.',
+'You somehow make every place feel better.',
+'This was such a simple day, but I loved it.',
+'The kind of memory I want more of.',
+'Still grateful this moment happened.',
+'Us being happy without even trying.',
+'One of those pictures that feels like us.',
+'A little piece of our story.',
+'Nothing fancy, just one of my favorite memories.',
+'I remember how happy I felt right here.',
+'This is one I will always keep.',
+'One of the reasons I love doing life with you.',
+'You made this moment better just by being there.',
+'I would go back to this day in a heartbeat.',
+'This picture still gives me that feeling.',
+'A moment I did not know I would miss this much.',
+'One of my favorite places: next to you.',
+'We looked pretty happy here, huh? ♡',
+'I love this version of us.',
+'Just another reason I am glad I found you.',
+'The kind of moment that makes everything worth it.',
+'This one belongs in our favorite memories.',
+'One photo, so many feelings.',
+'Still one of my favorite smiles.',
+'I hope we make a hundred more memories like this.',
+'A small moment that means a lot to me.',
+'You made this day one to remember.',
+'One of those memories I never get tired of seeing.',
+'This photo feels like home to me.',
+'I did not know it then, but I would treasure this.',
+'Proof that the best moments can be simple.',
+'I would choose you in this moment all over again.',
+'This memory will always have a soft spot in my heart. ♡'
 ];
+
+let savedCaptionBySlot={};
+const captionEditorsBySlot=new Map();
+
+function refreshCaptionOptions(){
+  const used=new Set(Object.values(savedCaptionBySlot).filter(Boolean));
+  captionEditorsBySlot.forEach((editor,slot)=>{
+    const current=savedCaptionBySlot[slot]||'';
+    const select=editor.select;
+    const previous=select.value;
+    select.innerHTML='';
+    const first=document.createElement('option');
+    first.value=''; first.textContent='Choose a caption';
+    select.appendChild(first);
+    captionPresets.forEach(t=>{
+      if(used.has(t)&&t!==current)return;
+      const o=document.createElement('option');
+      o.value=t; o.textContent=t;
+      select.appendChild(o);
+    });
+    if(current&&captionPresets.includes(current))select.value=current;
+    else if(previous&&[...select.options].some(o=>o.value===previous))select.value=previous;
+  });
+}
 
 const captionPanel=document.createElement('div');
 captionPanel.style.cssText='display:grid;gap:14px;margin-top:16px';
@@ -358,8 +421,9 @@ function makeCaptionEditor(slot,url,current,position='50,50'){
   const save=document.createElement('button'); save.type='button'; save.className='secondary-btn editor-action'; save.textContent='Save Caption';
   const msg=document.createElement('p'); msg.className='editor-status';
   savePos.addEventListener('click',async()=>{try{if(!await ensureBirthdayAdmin())return;savePos.disabled=true;msg.textContent='Saving position…';await birthdayApi('/api/admin/position/memory'+slot,{method:'POST',body:JSON.stringify({x,y})});msg.textContent='Position saved ✓';}catch(e){msg.textContent=e.message}finally{savePos.disabled=false}});
-  save.addEventListener('click',async()=>{try{if(!await ensureBirthdayAdmin())return;save.disabled=true;msg.textContent='Saving caption…';const caption=input.value.trim()||select.value;await birthdayApi('/api/admin/caption/memory'+slot,{method:'POST',body:JSON.stringify({caption})});msg.textContent='Caption saved ✓';}catch(e){msg.textContent=e.message}finally{save.disabled=false}});
+  save.addEventListener('click',async()=>{try{if(!await ensureBirthdayAdmin())return;save.disabled=true;msg.textContent='Saving caption…';const caption=input.value.trim()||select.value;await birthdayApi('/api/admin/caption/memory'+slot,{method:'POST',body:JSON.stringify({caption})});savedCaptionBySlot[slot]=caption;refreshCaptionOptions();msg.textContent='Caption saved ✓';}catch(e){msg.textContent=e.message}finally{save.disabled=false}});
   box.append(frame,dragHint,title,select,input,savePos,save,msg);
+  captionEditorsBySlot.set(slot,{select,input});
   return box;
 }
 
@@ -368,13 +432,17 @@ async function loadCaptionEditors(){
   try{
     const j=await fetch('/api/media-versions',{cache:'no-store'}).then(r=>r.json());
     captionPanel.innerHTML='';
+    captionEditorsBySlot.clear();
+    savedCaptionBySlot={};
     for(let i=1;i<=8;i++){
       const v=j.settings?.['media_memory'+i+'_version'];
       if(!v)continue;
       const current=j.settings?.['media_memory'+i+'_caption']||'';
+      savedCaptionBySlot[i]=current;
       const position=j.settings?.['media_memory'+i+'_position']||'50,50';
       captionPanel.appendChild(makeCaptionEditor(i,'/api/site-media/memory'+i+'?v='+encodeURIComponent(v),current,position));
     }
+    refreshCaptionOptions();
   }catch{}
 }
 
